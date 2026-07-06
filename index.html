@@ -23,18 +23,18 @@
 <div class="container">
     <h1>Automação Completa (Login + Busca + Mutação)</h1>
     
-    <div class="section-title">Credenciais de Acesso Automático</div>
+    <div class="section-title">Credenciais do Usuário</div>
     <div class="grid-2">
         <div>
-            <label>E-mail (Login):</label>
-            <input type="text" id="email" value="luiz.lackeski@cobli.co">
+            <label>E-mail (Field Control):</label>
+            <input type="text" id="email" placeholder="Ex: usuario@cobli.co">
         </div>
         <div>
             <label>Senha:</label>
-            <input type="password" id="senha" value="rvc9nzv!bta_nvp9DRH">
+            <input type="password" id="senha" placeholder="Sua senha do Field Control">
         </div>
     </div>
-    <div class="aviso-cors">*Nota: Testes diretos no navegador podem exigir desativar o CORS (Allow CORS extension). Em backend (Node/PHP) funciona nativamente.</div>
+    <div class="aviso-cors">*Nota: Testes diretos no navegador exigem o uso de uma extensão para desativar o CORS (como a "Allow CORS").</div>
 
     <div class="section-title">Configurações da API</div>
     
@@ -45,7 +45,7 @@
     <input type="text" id="apiUrlRest" value="https://api.fieldcontrol.com.br">
     
     <label>Chave da API (X-Api-Key):</label>
-    <input type="text" id="apiKeyRest" placeholder="Sua chave X-Api-Key (para a busca REST)">
+    <input type="text" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
 
     <label>URL da API (GraphQL para Inserir):</label>
     <input type="text" id="apiUrlGraph" value="https://sammathnaur.fieldcontrol.com.br/graphql">
@@ -57,7 +57,7 @@
     <button onclick="executarTesteTotal()">Executar Automação Completa</button>
 
     <label>Log do Sistema:</label>
-    <div id="logArea" class="log-area">Aguardando...</div>
+    <div id="logArea" class="log-area">Aguardando preenchimento dos dados...</div>
 </div>
 
 <script>
@@ -71,7 +71,7 @@
         console.log(message);
     }
 
-    async function executarTesteTotal() {
+    async function ejecutarTesteTotal() {
         document.getElementById('logArea').innerText = "Iniciando Automação...";
         
         const email = document.getElementById('email').value.trim();
@@ -103,13 +103,12 @@
             });
             
             if (!loginRes.ok) {
-                log(`❌ ERRO NO LOGIN (Status ${loginRes.status}). Verifique e-mail, senha ou bloqueio de CORS.`);
+                log(`❌ ERRO NO LOGIN (Status ${loginRes.status}). Verifique e-mail, senha ou se a extensão de CORS está ligada.`);
                 return;
             }
 
             const loginJson = await loginRes.json();
             
-            // Extrai o token
             tokenDinamico = loginJson.token || loginJson.accessToken || (loginJson.data && loginJson.data.token);
             
             if (!tokenDinamico) {
@@ -117,11 +116,11 @@
                 return;
             }
 
-            log(`✅ Login com sucesso! Novo Token temporário gerado.`);
+            log(`✅ Login realizado com sucesso! Token temporário gerado.`);
 
         } catch (error) {
             log(`\n❌ ERRO FATAL NO PASSO 0 (Login): ${error.message}`);
-            log("💡 Dica: Se for erro de 'fetch' ou 'CORS', é o navegador bloqueando. Use uma extensão de Allow CORS para testes web.");
+            log("💡 Dica: Se o erro for de 'fetch', certifique-se de ativar a extensão de CORS no seu navegador.");
             return;
         }
 
