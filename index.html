@@ -334,15 +334,7 @@
         }
     }
 
-    // Acionado ao clicar em [Alterar]
-    function redefinirApiKey() {
-        alternarVisibilidadeApiKey(false);
-        document.getElementById('apiKeyRest').value = "";
-        localStorage.removeItem('field_apikey');
-        document.getElementById('apiKeyRest').focus();
-    }
-
-    function log(message) {
+      function log(message) {
         const logArea = document.getElementById('logArea');
         logArea.innerText += '\n' + message;
         logArea.scrollTop = logArea.scrollHeight; 
