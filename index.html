@@ -48,11 +48,11 @@
             position: relative;
         }
         .kpi-card.total { border-bottom: 4px solid #3248C6; }
-        .kpi-card.sucesso { border-bottom: 4px solid #00AE97; } /* Destaque Verde/Teal */
+        .kpi-card.sucesso { border-bottom: 4px solid #00AE97; } 
         
         /* Card de Falhas interativo */
         .kpi-card.falha { 
-            border-bottom: 4px solid #FF4633; /* Destaque Vermelho Cobli */
+            border-bottom: 4px solid #FF4633; 
             cursor: pointer;
         }
         .kpi-card.falha:hover {
@@ -162,7 +162,7 @@
         .btn-submit { 
             margin-top: 25px; 
             padding: 14px 20px; 
-            background-color: #001BB8; /* Azul claro Cobli */
+            background-color: #001BB8; 
             color: #ffffff; 
             border: none; 
             border-radius: 6px; 
@@ -211,12 +211,30 @@
             font-style: italic; 
             font-weight: 500;
         }
+        
+        /* Estilo do Badge de Chave Salva */
+        .api-badge {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #00AE97;
+            background-color: rgba(0, 174, 151, 0.08);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px dashed #00AE97;
+        }
+        .api-badge a {
+            color: #001BB8;
+            text-decoration: underline;
+            margin-left: 6px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Automação em Lote |TAG confirmação de agendamento</h1>
+    <h1>Automação em Lote (Vincular TAG de confirmação)</h1>
     
     <div class="kpi-grid">
         <div class="kpi-card total">
@@ -252,11 +270,18 @@
             <input type="password" id="senha" placeholder="Sua senha do Field Control">
         </div>
     </div>
-    <div class="aviso-cors">*Nota: Após o primeiro Login, os dados ficarão salvo no cache do navegador.</div>
+    <div class="aviso-cors">*Nota: Execuções via navegador exigem a extensão ativada para desativar o CORS (como a "Allow CORS").</div>
 
     <div class="section-title">Configuração de Segurança</div>
-    <label>Chave da API (X-Api-Key):</label>
-    <input type="password" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
+    
+    <div id="apiKeyContainer">
+        <label>Chave da API (X-Api-Key):</label>
+        <input type="password" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
+    </div>
+    
+    <div id="apiKeySavedBadge" class="api-badge" style="display: none;">
+        🔑 Chave X-Api-Key carregada da memória local. <a onclick="redefinirApiKey()">[Alterar]</a>
+    </div>
 
     <div class="section-title">Processamento em Lote</div>
     <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
@@ -274,10 +299,9 @@
     const URL_GRAPH = "https://sammathnaur.fieldcontrol.com.br/graphql";
     const FIXED_LABEL_ID = "7e653f62-f380-4924-851a-fc754d8fd470";
 
-    // Memória Global das Falhas do Lote Atual
     let chamadosComFalha = [];
 
-    // Carregamento do localStorage
+    // Carregamento e Verificação de Memória
     window.onload = function() {
         if (localStorage.getItem('field_email')) {
             document.getElementById('email').value = localStorage.getItem('field_email');
@@ -285,13 +309,38 @@
         if (localStorage.getItem('field_senha')) {
             document.getElementById('senha').value = localStorage.getItem('field_senha');
         }
+        
+        // Regra Ocultável Inteligente da API KEY
         if (localStorage.getItem('field_apikey')) {
             document.getElementById('apiKeyRest').value = localStorage.getItem('field_apikey');
+            alternarVisibilidadeApiKey(true);
+        } else {
+            alternarVisibilidadeApiKey(false);
         }
+
         if (localStorage.getItem('field_email')) {
-            document.getElementById('logArea').innerText = "✅ Credenciais de uso local carregadas da memória.";
+            document.getElementById('logArea').innerText = "✅ Credenciais operacionais carregadas da memória.";
         }
     };
+
+    // Controla o esconde/aparece da API Key
+    function alternarVisibilidadeApiKey(ocultar) {
+        if (ocultar) {
+            document.getElementById('apiKeyContainer').style.display = 'none';
+            document.getElementById('apiKeySavedBadge').style.display = 'block';
+        } else {
+            document.getElementById('apiKeyContainer').style.display = 'block';
+            document.getElementById('apiKeySavedBadge').style.display = 'none';
+        }
+    }
+
+    // Acionado ao clicar em [Alterar]
+    function redefinirApiKey() {
+        alternarVisibilidadeApiKey(false);
+        document.getElementById('apiKeyRest').value = "";
+        localStorage.removeItem('field_apikey');
+        document.getElementById('apiKeyRest').focus();
+    }
 
     function log(message) {
         const logArea = document.getElementById('logArea');
@@ -305,7 +354,6 @@
         document.getElementById('kpi-falha').innerText = falhas;
     }
 
-    // Abre/Fecha a seção de relatórios de erro
     function toggleSecaoFalhas() {
         const secao = document.getElementById('failedSection');
         if (chamadosComFalha.length === 0) {
@@ -320,19 +368,17 @@
         }
     }
 
-    // Copia os chamados errados de volta para a área de transferência
     function copiarListaFalhas() {
         const textarea = document.getElementById('failedTextarea');
         textarea.select();
         textarea.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(textarea.value);
-        alert("Lista de chamados com falha copiada! Pode colar direto no seu Sheets.");
+        alert("Lista de falhas copiada! Pronto para devolver para o seu Sheets.");
     }
 
     async function executarAutomacaoEmLote() {
         document.getElementById('logArea').innerText = "Iniciando Automação em Lote...";
         
-        // Reset do painel e array de falhas
         chamadosComFalha = [];
         document.getElementById('failedTextarea').value = "";
         document.getElementById('failedSection').style.display = 'none';
@@ -347,9 +393,13 @@
             return;
         }
 
+        // Salva na memória do navegador
         localStorage.setItem('field_email', email);
         localStorage.setItem('field_senha', senha);
         localStorage.setItem('field_apikey', apiKeyRest);
+        
+        // Esconde o campo após salvar com sucesso
+        alternarVisibilidadeApiKey(true);
 
         const chamados = listaChamadosRaw.split('\n')
             .map(c => c.trim())
@@ -484,7 +534,7 @@
                 document.getElementById('failedTextarea').value = chamadosComFalha.join('\n');
             }
 
-            atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
+            atualizarKPIs(sucessos + falhas, chamados.length, successes = sucessos, falhas);
         }
 
         log(`\n==================================================`);
