@@ -22,9 +22,9 @@
 <body>
 
 <div class="container">
-    <h1>Automação em Lote (Vincular Etiquetas)</h1>
+    <h1>Automação em Lote (Vincular Tickets)</h1>
     
-    <div class="section-title">Credenciais do Usuário</div>
+    <div class="section-title">Credenciais do Usuário (Fica salvo no seu PC)</div>
     <div class="grid-2">
         <div>
             <label>E-mail (Field Control):</label>
@@ -39,7 +39,7 @@
 
     <div class="section-title">Configuração de Segurança</div>
     <label>Chave da API (X-Api-Key):</label>
-    <input type="text" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
+    <input type="password" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
 
     <div class="section-title">Processamento em Lote</div>
     <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
@@ -52,13 +52,29 @@
 </div>
 
 <script>
-    // =====================================================================
-    // CONFIGURAÇÕES FIXAS - URLS EMBUTIDAS CONFORME SOLICITADO
-    // =====================================================================
+    // Configurações Fixas Embutidas
     const URL_LOGIN = "https://morannon.fieldcontrol.com.br";
-    const URL_REST  = "https://amonamarth.fieldcontrol.com.br";
+    const URL_REST  = "https://https://amonamarth.fieldcontrol.com.br";
     const URL_GRAPH = "https://sammathnaur.fieldcontrol.com.br/graphql";
     const FIXED_LABEL_ID = "7e653f62-f380-4924-851a-fc754d8fd470";
+
+    // =====================================================================
+    // MEMÓRIA LOCAL: Carrega os dados salvos no navegador assim que a página abre
+    // =====================================================================
+    window.onload = function() {
+        if (localStorage.getItem('field_email')) {
+            document.getElementById('email').value = localStorage.getItem('field_email');
+        }
+        if (localStorage.getItem('field_senha')) {
+            document.getElementById('senha').value = localStorage.getItem('field_senha');
+        }
+        if (localStorage.getItem('field_apikey')) {
+            document.getElementById('apiKeyRest').value = localStorage.getItem('field_apikey');
+        }
+        if (localStorage.getItem('field_email')) {
+            document.getElementById('logArea').innerText = "✅ Dados de login recuperados da memória local do seu navegador.";
+        }
+    };
 
     function log(message) {
         const logArea = document.getElementById('logArea');
@@ -80,7 +96,11 @@
             return;
         }
 
-        // Quebra o texto colado por quebras de linha e limpa espaços vazios
+        // SALVA NA MEMÓRIA DO NAVEGADOR PARA O PRÓXIMO USO
+        localStorage.setItem('field_email', email);
+        localStorage.setItem('field_senha', senha);
+        localStorage.setItem('field_apikey', apiKeyRest);
+
         const chamados = listaChamadosRaw.split('\n')
             .map(c => c.trim())
             .filter(c => c.length > 0);
@@ -138,7 +158,7 @@
             try {
                 const hoje = new Date();
                 const trintaDiasAtras = new Date();
-                trintaDiasAtras.setDate(hoje.getDate() - 5); // Busca nos últimos 5 dias
+                trintaDiasAtras.setDate(hoje.getDate() - 5); 
 
                 const dataInicio = trintaDiasAtras.toISOString().split("T")[0] + "T00:00:00.000Z";
                 const dataFim = hoje.toISOString();
@@ -177,7 +197,7 @@
                 if (!maintenanceId) {
                     log(`⚠️ Chamado não encontrado nas páginas recentes. Pulando...`);
                     falhas++;
-                    continue; // Pula para o próximo chamado da lista
+                    continue; 
                 }
 
                 log(`   ↳ ID Interno localizado: ${maintenanceId}`);
