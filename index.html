@@ -38,20 +38,39 @@
             margin: 20px 0;
         }
         .kpi-card {
-            background-color: #1F1F5F; /* Cor de fundo KPI solicitada */
+            background-color: #1F1F5F; /* Fundo KPI Cobli */
             padding: 15px 10px;
             border-radius: 8px;
             text-align: center;
             color: #ffffff;
             box-shadow: 0 4px 15px rgba(31, 31, 95, 0.15);
-            transition: transform 0.2s ease;
-        }
-        .kpi-card:hover {
-            transform: translateY(-2px);
+            transition: all 0.2s ease;
+            position: relative;
         }
         .kpi-card.total { border-bottom: 4px solid #3248C6; }
-        .kpi-card.sucesso { border-bottom: 4px solid #00AE97; } /* Destaque Verde */
-        .kpi-card.falha { border-bottom: 4px solid #FF4633; } /* Destaque Vermelho */
+        .kpi-card.sucesso { border-bottom: 4px solid #00AE97; } /* Destaque Verde/Teal */
+        
+        /* Card de Falhas interativo */
+        .kpi-card.falha { 
+            border-bottom: 4px solid #FF4633; /* Destaque Vermelho Cobli */
+            cursor: pointer;
+        }
+        .kpi-card.falha:hover {
+            transform: translateY(-2px);
+            background-color: #2c2c78;
+            box-shadow: 0 6px 20px rgba(255, 70, 51, 0.2);
+        }
+        .kpi-card.falha::after {
+            content: '🔍 Clique para ver';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            right: 0;
+            font-size: 9px;
+            color: #FF4633;
+            font-weight: bold;
+            opacity: 0.8;
+        }
         
         .kpi-label { 
             display: block; 
@@ -66,6 +85,45 @@
             font-size: 22px; 
             font-weight: 700; 
             margin-top: 6px; 
+        }
+
+        /* SEÇÃO DE EXIBIÇÃO DE FALHAS COPIÁVEL */
+        .failed-section {
+            display: none;
+            margin-top: 20px;
+            background-color: #ffffff;
+            border: 2px solid #FF4633;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(255, 70, 51, 0.1);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .failed-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #FF4633;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .btn-copy-failed {
+            background-color: #FF4633;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-copy-failed:hover {
+            background-color: #b82e21;
         }
 
         label { 
@@ -101,7 +159,7 @@
             grid-template-columns: 1fr 1fr; 
             gap: 15px; 
         }
-        button { 
+        .btn-submit { 
             margin-top: 25px; 
             padding: 14px 20px; 
             background-color: #001BB8; /* Azul claro Cobli */
@@ -116,7 +174,7 @@
             transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(0, 27, 184, 0.2);
         }
-        button:hover { 
+        .btn-submit:hover { 
             background-color: #07074E; 
             box-shadow: 0 4px 12px rgba(7, 7, 78, 0.3);
         }
@@ -129,7 +187,7 @@
             font-family: 'Fira Code', Consolas, Monaco, monospace; 
             white-space: pre-wrap; 
             word-break: break-all; 
-            min-height: 200px; 
+            min-height: 180px; 
             font-size: 12px; 
             max-height: 400px; 
             overflow-y: auto; 
@@ -158,7 +216,7 @@
 <body>
 
 <div class="container">
-    <h1>Automação em Lote (Vincular TAG de confirmação)</h1>
+    <h1>Automação em Lote |TAG confirmação de agendamento</h1>
     
     <div class="kpi-grid">
         <div class="kpi-card total">
@@ -169,10 +227,18 @@
             <span class="kpi-label">Sucessos</span>
             <span class="kpi-value" id="kpi-sucesso">0</span>
         </div>
-        <div class="kpi-card falha">
+        <div class="kpi-card falha" onclick="toggleSecaoFalhas()">
             <span class="kpi-label">Falhas</span>
             <span class="kpi-value" id="kpi-falha">0</span>
         </div>
+    </div>
+
+    <div id="failedSection" class="failed-section">
+        <div class="failed-title">
+            <span>⚠️ Chamados com Falha (Pronto para o Sheets)</span>
+            <button class="btn-copy-failed" onclick="copiarListaFalhas()">Copiar Lista</button>
+        </div>
+        <textarea id="failedTextarea" rows="4" readonly placeholder="Nenhum erro registrado neste lote..."></textarea>
     </div>
 
     <div class="section-title">Credenciais do Usuário (Salvo neste Navegador)</div>
@@ -186,7 +252,7 @@
             <input type="password" id="senha" placeholder="Sua senha do Field Control">
         </div>
     </div>
-    <div class="aviso-cors">*Nota: Após realizar o login, os dados ficarão salvos no navegador.</div>
+    <div class="aviso-cors">*Nota: Após o primeiro Login, os dados ficarão salvo no cache do navegador.</div>
 
     <div class="section-title">Configuração de Segurança</div>
     <label>Chave da API (X-Api-Key):</label>
@@ -196,7 +262,7 @@
     <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
     <textarea id="listaChamados" rows="6" placeholder="46389903024&#10;46533835921"></textarea>
 
-    <button onclick="executarAutomacaoEmLote()">Iniciar Processamento em Lote</button>
+    <button class="btn-submit" onclick="executarAutomacaoEmLote()">Iniciar Processamento em Lote</button>
 
     <div class="section-title">Console de Resposta</div>
     <div id="logArea" class="log-area">Aguardando execução...</div>
@@ -207,6 +273,9 @@
     const URL_REST  = "https://amonamarth.fieldcontrol.com.br";
     const URL_GRAPH = "https://sammathnaur.fieldcontrol.com.br/graphql";
     const FIXED_LABEL_ID = "7e653f62-f380-4924-851a-fc754d8fd470";
+
+    // Memória Global das Falhas do Lote Atual
+    let chamadosComFalha = [];
 
     // Carregamento do localStorage
     window.onload = function() {
@@ -230,16 +299,44 @@
         logArea.scrollTop = logArea.scrollHeight; 
     }
 
-    // Função auxiliar para atualizar o visual dos cards na tela
     function atualizarKPIs(atual, total, sucessos, falhas) {
         document.getElementById('kpi-total').innerText = `${atual} / ${total}`;
         document.getElementById('kpi-sucesso').innerText = sucessos;
         document.getElementById('kpi-falha').innerText = falhas;
     }
 
+    // Abre/Fecha a seção de relatórios de erro
+    function toggleSecaoFalhas() {
+        const secao = document.getElementById('failedSection');
+        if (chamadosComFalha.length === 0) {
+            alert("Nenhuma falha registrada no lote atual!");
+            return;
+        }
+        if (secao.style.display === 'none' || secao.style.display === '') {
+            secao.style.display = 'block';
+            secao.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            secao.style.display = 'none';
+        }
+    }
+
+    // Copia os chamados errados de volta para a área de transferência
+    function copiarListaFalhas() {
+        const textarea = document.getElementById('failedTextarea');
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(textarea.value);
+        alert("Lista de chamados com falha copiada! Pode colar direto no seu Sheets.");
+    }
+
     async function executarAutomacaoEmLote() {
         document.getElementById('logArea').innerText = "Iniciando Automação em Lote...";
         
+        // Reset do painel e array de falhas
+        chamadosComFalha = [];
+        document.getElementById('failedTextarea').value = "";
+        document.getElementById('failedSection').style.display = 'none';
+
         const email = document.getElementById('email').value.trim();
         const senha = document.getElementById('senha').value.trim();
         const apiKeyRest = document.getElementById('apiKeyRest').value.trim();
@@ -258,7 +355,6 @@
             .map(c => c.trim())
             .filter(c => c.length > 0);
 
-        // Inicializa o contador nos cards
         atualizarKPIs(0, chamados.length, 0, 0);
         log(`📋 Total de chamados carregados: ${chamados.length}`);
 
@@ -340,6 +436,8 @@
                 if (!maintenanceId) {
                     log(`⚠️ Chamado não localizado no período recente.`);
                     falhas++;
+                    chamadosComFalha.push(numeroChamado);
+                    document.getElementById('failedTextarea').value = chamadosComFalha.join('\n');
                     atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
                     continue; 
                 }
@@ -347,6 +445,8 @@
             } catch (error) {
                 log(`❌ Erro de busca: ${error.message}`);
                 falhas++;
+                chamadosComFalha.push(numeroChamado);
+                document.getElementById('failedTextarea').value = chamadosComFalha.join('\n');
                 atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
                 continue;
             }
@@ -370,6 +470,8 @@
                 if (dataMutacao.errors) {
                     log(`❌ Erro na API GraphQL.`);
                     falhas++;
+                    chamadosComFalha.push(numeroChamado);
+                    document.getElementById('failedTextarea').value = chamadosComFalha.join('\n');
                 } else {
                     log(`🎉 Sucesso! Vinculado.`);
                     sucessos++;
@@ -378,14 +480,18 @@
             } catch (error) {
                 log(`❌ Erro na rede: ${error.message}`);
                 falhas++;
+                chamadosComFalha.push(numeroChamado);
+                document.getElementById('failedTextarea').value = chamadosComFalha.join('\n');
             }
 
-            // Atualiza os contadores gráficos na tela ao fim de cada ciclo do loop
             atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
         }
 
         log(`\n==================================================`);
-        log(`🏁 LOTE CONCLUÍDO! Verifique os resultados nos cards.`);
+        log(`🏁 LOTE CONCLUÍDO!`);
+        if(falhas > 0) {
+            log(`⚠️ ${falhas} chamados falharam. Clique no card 'FALHAS' acima para ver e copiar a lista.`);
+        }
         log(`==================================================`);
     }
 </script>
