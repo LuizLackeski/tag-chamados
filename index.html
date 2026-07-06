@@ -234,7 +234,7 @@
 <body>
 
 <div class="container">
-    <h1>Automação em Lote (Vincular TAG de confirmação)</h1>
+    <h1>Automação em Lote | TAG de confirmação de agendamento</h1>
     
     <div class="kpi-grid">
         <div class="kpi-card total">
@@ -259,7 +259,7 @@
         <textarea id="failedTextarea" rows="4" readonly placeholder="Nenhum erro registrado neste lote..."></textarea>
     </div>
 
-    <div class="section-title">Credenciais do Usuário (Salvo neste Navegador)</div>
+    <div class="section-title">Credenciais do Usuário</div>
     <div class="grid-2">
         <div>
             <label>E-mail (Field Control):</label>
@@ -270,7 +270,7 @@
             <input type="password" id="senha" placeholder="Sua senha do Field Control">
         </div>
     </div>
-    <div class="aviso-cors">*Nota: Execuções via navegador exigem a extensão ativada para desativar o CORS (como a "Allow CORS").</div>
+    <div class="aviso-cors">*Nota: Após o primeiro Login, os dados ficarão salvos no navegador.</div>
 
     <div class="section-title">Configuração de Segurança</div>
     
@@ -280,8 +280,8 @@
     </div>
     
     <div id="apiKeySavedBadge" class="api-badge" style="display: none;">
-        🔑 Chave X-Api-Key carregada da memória local. <a onclick="redefinirApiKey()">[Alterar]</a>
-    </div>
+    🔑 Chave API validada com sucesso.
+</div>
 
     <div class="section-title">Processamento em Lote</div>
     <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
