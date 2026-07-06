@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integração Definitiva - Etiqueta Field Control</title>
+    <title>Integração Definitiva - Etiqueta em Lote</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
         .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { font-size: 20px; color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; }
         label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { font-family: monospace; resize: vertical; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         button { margin-top: 20px; padding: 12px 15px; background-color: #8e44ad; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; }
         button:hover { background-color: #732d91; }
-        .log-area { margin-top: 20px; padding: 10px; background: #2c3e50; color: #ecf0f1; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; min-height: 200px; font-size: 12px; max-height: 400px; overflow-y: auto; }
+        .log-area { margin-top: 20px; padding: 10px; background: #2c3e50; color: #ecf0f1; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; min-height: 250px; font-size: 12px; max-height: 500px; overflow-y: auto; }
         .section-title { margin-top: 20px; color: #7f8c8d; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .aviso-cors { font-size: 11px; color: #e74c3c; margin-top: 5px; font-style: italic; }
     </style>
@@ -21,7 +22,7 @@
 <body>
 
 <div class="container">
-    <h1>Automação Completa (Login + Busca + Mutação)</h1>
+    <h1>Automação em Lote (Vincular Etiquetas)</h1>
     
     <div class="section-title">Credenciais do Usuário</div>
     <div class="grid-2">
@@ -36,32 +37,27 @@
     </div>
     <div class="aviso-cors">*Nota: Testes diretos no navegador exigem o uso de uma extensão para desativar o CORS (como a "Allow CORS").</div>
 
-    <div class="section-title">Configurações da API</div>
-    
-    <label>URL de Login (Auth):</label>
-    <input type="text" id="apiUrlLogin" value="https://morannon.fieldcontrol.com.br">
-
-    <label>URL Base da API (REST para Busca):</label>
-    <input type="text" id="apiUrlRest" value="https://api.fieldcontrol.com.br">
-    
+    <div class="section-title">Configuração de Segurança</div>
     <label>Chave da API (X-Api-Key):</label>
     <input type="text" id="apiKeyRest" placeholder="Insira a X-Api-Key do sistema de integração">
 
-    <label>URL da API (GraphQL para Inserir):</label>
-    <input type="text" id="apiUrlGraph" value="https://sammathnaur.fieldcontrol.com.br/graphql">
+    <div class="section-title">Processamento em Lote</div>
+    <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
+    <textarea id="listaChamados" rows="8" placeholder="46389903024&#10;46533835921&#10;46240353125"></textarea>
 
-    <div class="section-title">Ação</div>
-    <label>Número do Chamado:</label>
-    <input type="text" id="numeroChamado" placeholder="Ex: 46389903024">
-
-    <button onclick="executarTesteTotal()">Executar Automação Completa</button>
+    <button onclick="executarAutomacaoEmLote()">Iniciar Processamento em Lote</button>
 
     <label>Log do Sistema:</label>
     <div id="logArea" class="log-area">Aguardando preenchimento dos dados...</div>
 </div>
 
 <script>
-    // ID Fixo da sua Etiqueta
+    // =====================================================================
+    // CONFIGURAÇÕES FIXAS - URLS EMBUTIDAS CONFORME SOLICITADO
+    // =====================================================================
+    const URL_LOGIN = "https://morannon.fieldcontrol.com.br";
+    const URL_REST  = "https://amonamarth.fieldcontrol.com.br";
+    const URL_GRAPH = "https://sammathnaur.fieldcontrol.com.br/graphql";
     const FIXED_LABEL_ID = "7e653f62-f380-4924-851a-fc754d8fd470";
 
     function log(message) {
@@ -71,44 +67,46 @@
         console.log(message);
     }
 
-    async function ejecutarTesteTotal() {
-        document.getElementById('logArea').innerText = "Iniciando Automação...";
+    async function executarAutomacaoEmLote() {
+        document.getElementById('logArea').innerText = "Iniciando Automação em Lote...";
         
         const email = document.getElementById('email').value.trim();
         const senha = document.getElementById('senha').value.trim();
-        const urlLogin = document.getElementById('apiUrlLogin').value.trim();
-        const urlRest = document.getElementById('apiUrlRest').value.trim();
         const apiKeyRest = document.getElementById('apiKeyRest').value.trim();
-        const urlGraph = document.getElementById('apiUrlGraph').value.trim();
-        const numeroChamado = document.getElementById('numeroChamado').value.trim();
+        const listaChamadosRaw = document.getElementById('listaChamados').value;
 
-        if (!email || !senha || !urlLogin || !urlRest || !apiKeyRest || !urlGraph || !numeroChamado) {
-            log("❌ ERRO: Preencha todos os campos antes de rodar.");
+        if (!email || !senha || !apiKeyRest || !listaChamadosRaw.trim()) {
+            document.getElementById('logArea').innerText = "❌ ERRO: Preencha todos os campos e insira pelo menos um chamado antes de rodar.";
             return;
         }
 
+        // Quebra o texto colado por quebras de linha e limpa espaços vazios
+        const chamados = listaChamadosRaw.split('\n')
+            .map(c => c.trim())
+            .filter(c => c.length > 0);
+
+        log(`📋 Total de chamados detectados para processamento: ${chamados.length}`);
+
         let tokenDinamico = null;
-        let maintenanceId = null;
 
         // =====================================================================
-        // PASSO 0: FAZER LOGIN PARA PEGAR O TOKEN BEARER FRESCO
+        // PASSO 0: FAZER LOGIN APENAS UMA VEZ PARA O LOTE INTEIRO
         // =====================================================================
         try {
-            log(`\n[PASSO 0] Realizando login automático com ${email}...`);
+            log(`\n[PASSO 0] Realizando login único para gerar o Token...`);
             
-            const loginRes = await fetch(`${urlLogin}/auth/sign-in`, {
+            const loginRes = await fetch(`${URL_LOGIN}/auth/sign-in`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, password: senha })
             });
             
             if (!loginRes.ok) {
-                log(`❌ ERRO NO LOGIN (Status ${loginRes.status}). Verifique e-mail, senha ou se a extensão de CORS está ligada.`);
+                log(`❌ ERRO NO LOGIN (Status ${loginRes.status}). Verifique e-mail/senha ou se o CORS está ativo.`);
                 return;
             }
 
             const loginJson = await loginRes.json();
-            
             tokenDinamico = loginJson.token || loginJson.accessToken || (loginJson.data && loginJson.data.token);
             
             if (!tokenDinamico) {
@@ -116,115 +114,123 @@
                 return;
             }
 
-            log(`✅ Login realizado com sucesso! Token temporário gerado.`);
+            log(`✅ Login realizado com sucesso! Token temporário obtido.`);
 
         } catch (error) {
-            log(`\n❌ ERRO FATAL NO PASSO 0 (Login): ${error.message}`);
-            log("💡 Dica: Se o erro for de 'fetch', certifique-se de ativar a extensão de CORS no seu navegador.");
+            log(`\n❌ ERRO FATAL NO LOGIN: ${error.message}`);
             return;
         }
 
         // =====================================================================
-        // PASSO 1: BUSCAR O ID DA MANUTENÇÃO VIA REST
+        // REPETIÇÃO (LOOP) - PROCESSA UM CHAMADO POR VEZ
         // =====================================================================
-        try {
-            log(`\n[PASSO 1] Buscando o chamado ${numeroChamado}...`);
-            
-            const hoje = new Date();
-            const trintaDiasAtras = new Date();
-            trintaDiasAtras.setDate(hoje.getDate() - 5); 
+        let sucessos = 0;
+        let falhas = 0;
 
-            const dataInicio = trintaDiasAtras.toISOString().split("T")[0] + "T00:00:00.000Z";
-            const dataFim = hoje.toISOString();
+        for (let i = 0; i < chamados.length; i++) {
+            const numeroChamado = chamados[i];
+            log(`\n--------------------------------------------------`);
+            log(`🔄 [${i + 1}/${chamados.length}] Processando chamado: ${numeroChamado}`);
 
-            let page = 1;
-            let encontrou = false;
+            let maintenanceId = null;
 
-            while (page <= 5 && !encontrou) {
-                log(`Varrendo página ${page}...`);
-                const buscaUrl = `${urlRest}/maintenances?page=${page}&perPage=100&openedAtGte=${dataInicio}&openedAtLte=${dataFim}`;
-                
-                const res = await fetch(buscaUrl, {
-                    method: 'GET',
-                    headers: { 'X-Api-Key': apiKeyRest, 'Accept': 'application/json' }
-                });
-                
-                if (!res.ok) break;
+            // PASSO 1: BUSCAR O ID VIA REST
+            try {
+                const hoje = new Date();
+                const trintaDiasAtras = new Date();
+                trintaDiasAtras.setDate(hoje.getDate() - 5); // Busca nos últimos 5 dias
 
-                const json = await res.json();
-                const items = json.items || [];
-                
-                if (items.length === 0) break;
+                const dataInicio = trintaDiasAtras.toISOString().split("T")[0] + "T00:00:00.000Z";
+                const dataFim = hoje.toISOString();
 
-                for (let item of items) {
-                    const numeroDoItem = String(item.number || "").trim();
-                    const identifierDoItem = String(item.identifier || "").trim();
+                let page = 1;
+                let encontrou = false;
+
+                while (page <= 5 && !encontrou) {
+                    const buscaUrl = `${URL_REST}/maintenances?page=${page}&perPage=100&openedAtGte=${dataInicio}&openedAtLte=${dataFim}`;
                     
-                    if (numeroDoItem.startsWith(numeroChamado) || identifierDoItem.startsWith(numeroChamado)) {
-                        maintenanceId = item.id || item.uuid || item.idMaintenance || item.identifier;
-                        encontrou = true;
-                        break;
+                    const res = await fetch(buscaUrl, {
+                        method: 'GET',
+                        headers: { 'X-Api-Key': apiKeyRest, 'Accept': 'application/json' }
+                    });
+                    
+                    if (!res.ok) break;
+
+                    const json = await res.json();
+                    const items = json.items || [];
+                    
+                    if (items.length === 0) break;
+
+                    for (let item of items) {
+                        const numeroDoItem = String(item.number || "").trim();
+                        const identifierDoItem = String(item.identifier || "").trim();
+                        
+                        if (numeroDoItem.startsWith(numeroChamado) || identifierDoItem.startsWith(numeroChamado)) {
+                            maintenanceId = item.id || item.uuid || item.idMaintenance || item.identifier;
+                            encontrou = true;
+                            break;
+                        }
                     }
+                    page++;
                 }
-                page++;
+
+                if (!maintenanceId) {
+                    log(`⚠️ Chamado não encontrado nas páginas recentes. Pulando...`);
+                    falhas++;
+                    continue; // Pula para o próximo chamado da lista
+                }
+
+                log(`   ↳ ID Interno localizado: ${maintenanceId}`);
+
+            } catch (error) {
+                log(`❌ Erro ao buscar chamado ${numeroChamado}: ${error.message}`);
+                falhas++;
+                continue;
             }
 
-            if (!maintenanceId) {
-                log(`❌ ERRO: O chamado ${numeroChamado} não foi encontrado.`);
-                return;
+            // PASSO 2: VINCULAR A ETIQUETA VIA GRAPHQL
+            try {
+                const responseMutacao = await fetch(URL_GRAPH, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenDinamico}`
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            mutation createMaintenanceLabels($input: [MaintenanceLabelCreateInput]!) {
+                                createMaintenanceLabels(input: $input) { id }
+                            }
+                        `,
+                        variables: {
+                            input: [ { labelId: FIXED_LABEL_ID, maintenanceId: maintenanceId } ]
+                        }
+                    })
+                });
+
+                const dataMutacao = await responseMutacao.json();
+
+                if (dataMutacao.errors) {
+                    log(`❌ Falha ao vincular etiqueta no chamado ${numeroChamado}:`);
+                    log(`   ${JSON.stringify(dataMutacao.errors[0].message)}`);
+                    falhas++;
+                } else {
+                    log(`🎉 Sucesso! Etiqueta vinculada com êxito.`);
+                    sucessos++;
+                }
+
+            } catch (error) {
+                log(`❌ Erro de rede ao vincular etiqueta: ${error.message}`);
+                falhas++;
             }
-
-            log(`✅ Chamado encontrado! ID Interno: ${maintenanceId}`);
-
-        } catch (error) {
-            log(`\n❌ ERRO NO PASSO 1 (Busca REST): ${error.message}`);
-            return;
         }
 
-        // =====================================================================
-        // PASSO 2: INSERIR ETIQUETA VIA GRAPHQL (COM O TOKEN NOVO)
-        // =====================================================================
-        try {
-            log(`\n[PASSO 2] Inserindo a etiqueta no GraphQL...`);
-
-            const headersGraph = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenDinamico}`
-            };
-
-            const queryMutacao = `
-                mutation createMaintenanceLabels($input: [MaintenanceLabelCreateInput]!) {
-                    createMaintenanceLabels(input: $input) {
-                        id
-                        __typename
-                    }
-                }
-            `;
-
-            const responseMutacao = await fetch(urlGraph, {
-                method: 'POST',
-                headers: headersGraph,
-                body: JSON.stringify({
-                    query: queryMutacao,
-                    variables: {
-                        input: [ { labelId: FIXED_LABEL_ID, maintenanceId: maintenanceId } ]
-                    }
-                })
-            });
-
-            const dataMutacao = await responseMutacao.json();
-
-            if (dataMutacao.errors) {
-                log("❌ ERRO na Mutação GraphQL:");
-                log(JSON.stringify(dataMutacao.errors, null, 2));
-            } else {
-                log("🎉 SUCESSO ABSOLUTO! A etiqueta foi vinculada ao chamado!");
-                log(JSON.stringify(dataMutacao.data, null, 2));
-            }
-
-        } catch (error) {
-            log(`\n❌ ERRO NO PASSO 2 (GraphQL): ${error.message}`);
-        }
+        // RESUMO FINAL DO LOTE
+        log(`\n==================================================`);
+        log(`🏁 PROCESSAMENTO CONCLUÍDO!`);
+        log(`✅ Sucessos: ${sucessos}`);
+        log(`❌ Falhas/Ignorados: ${falhas}`);
+        log(`==================================================`);
     }
 </script>
 
