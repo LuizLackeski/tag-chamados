@@ -3,28 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integração Definitiva - Etiqueta em Lote</title>
+    <title>Dashboard Cobli - Automação de Etiquetas</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
-        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { font-size: 20px; color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; }
-        label { display: block; margin-top: 10px; font-weight: bold; font-size: 13px; }
-        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        textarea { font-family: monospace; resize: vertical; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        button { margin-top: 20px; padding: 12px 15px; background-color: #8e44ad; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; }
-        button:hover { background-color: #732d91; }
-        .log-area { margin-top: 20px; padding: 10px; background: #2c3e50; color: #ecf0f1; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; min-height: 250px; font-size: 12px; max-height: 500px; overflow-y: auto; }
-        .section-title { margin-top: 20px; color: #7f8c8d; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .aviso-cors { font-size: 11px; color: #e74c3c; margin-top: 5px; font-style: italic; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #E6E6ED; /* Fundo cinza claro Cobli */
+            color: #07074E; /* Azul escuro principal */
+            padding: 30px 20px; 
+            margin: 0;
+        }
+        .container { 
+            max-width: 650px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(7, 7, 78, 0.08); 
+            border-top: 6px solid #001BB8; /* Azul claro Cobli */
+        }
+        h1 { 
+            font-size: 22px; 
+            color: #07074E; 
+            margin-top: 0;
+            padding-bottom: 12px; 
+            border-bottom: 3px solid #00AE97; /* Verde/Teal Cobli */
+            font-weight: 700;
+        }
+        
+        /* ESTILIZAÇÃO DOS CARDS KPI */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .kpi-card {
+            background-color: #1F1F5F; /* Cor de fundo KPI solicitada */
+            padding: 15px 10px;
+            border-radius: 8px;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(31, 31, 95, 0.15);
+            transition: transform 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
+        .kpi-card.total { border-bottom: 4px solid #3248C6; }
+        .kpi-card.sucesso { border-bottom: 4px solid #00AE97; } /* Destaque Verde */
+        .kpi-card.falha { border-bottom: 4px solid #FF4633; } /* Destaque Vermelho */
+        
+        .kpi-label { 
+            display: block; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            color: #E6E6ED; 
+            font-weight: 600; 
+            letter-spacing: 0.5px;
+        }
+        .kpi-value { 
+            display: block; 
+            font-size: 22px; 
+            font-weight: 700; 
+            margin-top: 6px; 
+        }
+
+        label { 
+            display: block; 
+            margin-top: 12px; 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: #07074E; 
+        }
+        input[type="text"], input[type="password"], textarea { 
+            width: 100%; 
+            padding: 10px 12px; 
+            margin-top: 5px; 
+            border: 1px solid #7F8DDB; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            color: #07074E;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #001BB8;
+            box-shadow: 0 0 0 3px rgba(0, 27, 184, 0.15);
+        }
+        textarea { 
+            font-family: 'Fira Code', Consolas, Monaco, monospace; 
+            resize: vertical; 
+        }
+        .grid-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+        button { 
+            margin-top: 25px; 
+            padding: 14px 20px; 
+            background-color: #001BB8; /* Azul claro Cobli */
+            color: #ffffff; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            width: 100%; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 27, 184, 0.2);
+        }
+        button:hover { 
+            background-color: #07074E; 
+            box-shadow: 0 4px 12px rgba(7, 7, 78, 0.3);
+        }
+        .log-area { 
+            margin-top: 20px; 
+            padding: 15px; 
+            background: #07074E; 
+            color: #E6E6ED; 
+            border-radius: 6px; 
+            font-family: 'Fira Code', Consolas, Monaco, monospace; 
+            white-space: pre-wrap; 
+            word-break: break-all; 
+            min-height: 200px; 
+            font-size: 12px; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            border-left: 4px solid #00AE97; 
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .section-title { 
+            margin-top: 25px; 
+            color: #3248C6; 
+            font-size: 11px; 
+            font-weight: 700;
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            border-bottom: 1px solid #E6E6ED; 
+            padding-bottom: 5px; 
+        }
+        .aviso-cors { 
+            font-size: 11px; 
+            color: #FF4633; 
+            margin-top: 6px; 
+            font-style: italic; 
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Automação em Lote (Vincular Tickets)</h1>
+    <h1>Automação em Lote (Vincular TAG de confirmação)</h1>
     
-    <div class="section-title">Credenciais do Usuário (Fica salvo no seu PC)</div>
+    <div class="kpi-grid">
+        <div class="kpi-card total">
+            <span class="kpi-label">Progresso</span>
+            <span class="kpi-value" id="kpi-total">0 / 0</span>
+        </div>
+        <div class="kpi-card sucesso">
+            <span class="kpi-label">Sucessos</span>
+            <span class="kpi-value" id="kpi-sucesso">0</span>
+        </div>
+        <div class="kpi-card falha">
+            <span class="kpi-label">Falhas</span>
+            <span class="kpi-value" id="kpi-falha">0</span>
+        </div>
+    </div>
+
+    <div class="section-title">Credenciais do Usuário (Salvo neste Navegador)</div>
     <div class="grid-2">
         <div>
             <label>E-mail (Field Control):</label>
@@ -35,7 +186,7 @@
             <input type="password" id="senha" placeholder="Sua senha do Field Control">
         </div>
     </div>
-    <div class="aviso-cors">*Nota: Testes diretos no navegador exigem o uso de uma extensão para desativar o CORS (como a "Allow CORS").</div>
+    <div class="aviso-cors">*Nota: Após realizar o login, os dados ficarão salvos no navegador.</div>
 
     <div class="section-title">Configuração de Segurança</div>
     <label>Chave da API (X-Api-Key):</label>
@@ -43,24 +194,21 @@
 
     <div class="section-title">Processamento em Lote</div>
     <label>Lista de Chamados (Cole uma coluna do Sheets - Um por linha):</label>
-    <textarea id="listaChamados" rows="8" placeholder="46389903024&#10;46533835921&#10;46240353125"></textarea>
+    <textarea id="listaChamados" rows="6" placeholder="46389903024&#10;46533835921"></textarea>
 
     <button onclick="executarAutomacaoEmLote()">Iniciar Processamento em Lote</button>
 
-    <label>Log do Sistema:</label>
-    <div id="logArea" class="log-area">Aguardando preenchimento dos dados...</div>
+    <div class="section-title">Console de Resposta</div>
+    <div id="logArea" class="log-area">Aguardando execução...</div>
 </div>
 
 <script>
-    // Configurações Fixas Embutidas
     const URL_LOGIN = "https://morannon.fieldcontrol.com.br";
     const URL_REST  = "https://amonamarth.fieldcontrol.com.br";
     const URL_GRAPH = "https://sammathnaur.fieldcontrol.com.br/graphql";
     const FIXED_LABEL_ID = "7e653f62-f380-4924-851a-fc754d8fd470";
 
-    // =====================================================================
-    // MEMÓRIA LOCAL: Carrega os dados salvos no navegador assim que a página abre
-    // =====================================================================
+    // Carregamento do localStorage
     window.onload = function() {
         if (localStorage.getItem('field_email')) {
             document.getElementById('email').value = localStorage.getItem('field_email');
@@ -72,7 +220,7 @@
             document.getElementById('apiKeyRest').value = localStorage.getItem('field_apikey');
         }
         if (localStorage.getItem('field_email')) {
-            document.getElementById('logArea').innerText = "✅ Dados de login recuperados da memória local do seu navegador.";
+            document.getElementById('logArea').innerText = "✅ Credenciais de uso local carregadas da memória.";
         }
     };
 
@@ -80,7 +228,13 @@
         const logArea = document.getElementById('logArea');
         logArea.innerText += '\n' + message;
         logArea.scrollTop = logArea.scrollHeight; 
-        console.log(message);
+    }
+
+    // Função auxiliar para atualizar o visual dos cards na tela
+    function atualizarKPIs(atual, total, sucessos, falhas) {
+        document.getElementById('kpi-total').innerText = `${atual} / ${total}`;
+        document.getElementById('kpi-sucesso').innerText = sucessos;
+        document.getElementById('kpi-falha').innerText = falhas;
     }
 
     async function executarAutomacaoEmLote() {
@@ -92,11 +246,10 @@
         const listaChamadosRaw = document.getElementById('listaChamados').value;
 
         if (!email || !senha || !apiKeyRest || !listaChamadosRaw.trim()) {
-            document.getElementById('logArea').innerText = "❌ ERRO: Preencha todos os campos e insira pelo menos um chamado antes de rodar.";
+            document.getElementById('logArea').innerText = "❌ ERRO: Preencha todos os campos e insira os chamados.";
             return;
         }
 
-        // SALVA NA MEMÓRIA DO NAVEGADOR PARA O PRÓXIMO USO
         localStorage.setItem('field_email', email);
         localStorage.setItem('field_senha', senha);
         localStorage.setItem('field_apikey', apiKeyRest);
@@ -105,16 +258,15 @@
             .map(c => c.trim())
             .filter(c => c.length > 0);
 
-        log(`📋 Total de chamados detectados para processamento: ${chamados.length}`);
+        // Inicializa o contador nos cards
+        atualizarKPIs(0, chamados.length, 0, 0);
+        log(`📋 Total de chamados carregados: ${chamados.length}`);
 
         let tokenDinamico = null;
 
-        // =====================================================================
-        // PASSO 0: FAZER LOGIN APENAS UMA VEZ PARA O LOTE INTEIRO
-        // =====================================================================
+        // PASSO 0: LOGIN ÚNICO
         try {
-            log(`\n[PASSO 0] Realizando login único para gerar o Token...`);
-            
+            log(`\n[PASSO 0] Autenticando na plataforma Morannon...`);
             const loginRes = await fetch(`${URL_LOGIN}/auth/sign-in`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -122,7 +274,7 @@
             });
             
             if (!loginRes.ok) {
-                log(`❌ ERRO NO LOGIN (Status ${loginRes.status}). Verifique e-mail/senha ou se o CORS está ativo.`);
+                log(`❌ ERRO NO LOGIN. Verifique as credenciais ou a extensão de CORS.`);
                 return;
             }
 
@@ -130,31 +282,28 @@
             tokenDinamico = loginJson.token || loginJson.accessToken || (loginJson.data && loginJson.data.token);
             
             if (!tokenDinamico) {
-                log(`❌ ERRO: Login aceito, mas Token não encontrado na resposta.`);
+                log(`❌ ERRO: Token não localizado na resposta.`);
                 return;
             }
-
-            log(`✅ Login realizado com sucesso! Token temporário obtido.`);
+            log(`✅ Token de sessão gerado.`);
 
         } catch (error) {
-            log(`\n❌ ERRO FATAL NO LOGIN: ${error.message}`);
+            log(`\n❌ ERRO NO LOGIN: ${error.message}`);
             return;
         }
 
-        // =====================================================================
-        // REPETIÇÃO (LOOP) - PROCESSA UM CHAMADO POR VEZ
-        // =====================================================================
         let sucessos = 0;
         let falhas = 0;
 
+        // LOOP DE PROCESSAMENTO
         for (let i = 0; i < chamados.length; i++) {
             const numeroChamado = chamados[i];
             log(`\n--------------------------------------------------`);
-            log(`🔄 [${i + 1}/${chamados.length}] Processando chamado: ${numeroChamado}`);
+            log(`🔄 [${i + 1}/${chamados.length}] Alvo: ${numeroChamado}`);
 
             let maintenanceId = null;
 
-            // PASSO 1: BUSCAR O ID VIA REST
+            // PASSO 1: BUSCA REST
             try {
                 const hoje = new Date();
                 const trintaDiasAtras = new Date();
@@ -168,24 +317,18 @@
 
                 while (page <= 5 && !encontrou) {
                     const buscaUrl = `${URL_REST}/maintenances?page=${page}&perPage=100&openedAtGte=${dataInicio}&openedAtLte=${dataFim}`;
-                    
                     const res = await fetch(buscaUrl, {
                         method: 'GET',
                         headers: { 'X-Api-Key': apiKeyRest, 'Accept': 'application/json' }
                     });
-                    
                     if (!res.ok) break;
 
                     const json = await res.json();
                     const items = json.items || [];
-                    
                     if (items.length === 0) break;
 
                     for (let item of items) {
-                        const numeroDoItem = String(item.number || "").trim();
-                        const identifierDoItem = String(item.identifier || "").trim();
-                        
-                        if (numeroDoItem.startsWith(numeroChamado) || identifierDoItem.startsWith(numeroChamado)) {
+                        if (String(item.number).trim().startsWith(numeroChamado) || String(item.identifier).trim().startsWith(numeroChamado)) {
                             maintenanceId = item.id || item.uuid || item.idMaintenance || item.identifier;
                             encontrou = true;
                             break;
@@ -195,20 +338,20 @@
                 }
 
                 if (!maintenanceId) {
-                    log(`⚠️ Chamado não encontrado nas páginas recentes. Pulando...`);
+                    log(`⚠️ Chamado não localizado no período recente.`);
                     falhas++;
+                    atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
                     continue; 
                 }
 
-                log(`   ↳ ID Interno localizado: ${maintenanceId}`);
-
             } catch (error) {
-                log(`❌ Erro ao buscar chamado ${numeroChamado}: ${error.message}`);
+                log(`❌ Erro de busca: ${error.message}`);
                 falhas++;
+                atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
                 continue;
             }
 
-            // PASSO 2: VINCULAR A ETIQUETA VIA GRAPHQL
+            // PASSO 2: MUTAÇÃO GRAPHQL
             try {
                 const responseMutacao = await fetch(URL_GRAPH, {
                     method: 'POST',
@@ -217,39 +360,32 @@
                         'Authorization': `Bearer ${tokenDinamico}`
                     },
                     body: JSON.stringify({
-                        query: `
-                            mutation createMaintenanceLabels($input: [MaintenanceLabelCreateInput]!) {
-                                createMaintenanceLabels(input: $input) { id }
-                            }
-                        `,
-                        variables: {
-                            input: [ { labelId: FIXED_LABEL_ID, maintenanceId: maintenanceId } ]
-                        }
+                        query: `mutation createMaintenanceLabels($input: [MaintenanceLabelCreateInput]!) { createMaintenanceLabels(input: $input) { id } }`,
+                        variables: { input: [ { labelId: FIXED_LABEL_ID, maintenanceId: maintenanceId } ] }
                     })
                 });
 
                 const dataMutacao = await responseMutacao.json();
 
                 if (dataMutacao.errors) {
-                    log(`❌ Falha ao vincular etiqueta no chamado ${numeroChamado}:`);
-                    log(`   ${JSON.stringify(dataMutacao.errors[0].message)}`);
+                    log(`❌ Erro na API GraphQL.`);
                     falhas++;
                 } else {
-                    log(`🎉 Sucesso! Etiqueta vinculada com êxito.`);
+                    log(`🎉 Sucesso! Vinculado.`);
                     sucessos++;
                 }
 
             } catch (error) {
-                log(`❌ Erro de rede ao vincular etiqueta: ${error.message}`);
+                log(`❌ Erro na rede: ${error.message}`);
                 falhas++;
             }
+
+            // Atualiza os contadores gráficos na tela ao fim de cada ciclo do loop
+            atualizarKPIs(sucessos + falhas, chamados.length, sucessos, falhas);
         }
 
-        // RESUMO FINAL DO LOTE
         log(`\n==================================================`);
-        log(`🏁 PROCESSAMENTO CONCLUÍDO!`);
-        log(`✅ Sucessos: ${sucessos}`);
-        log(`❌ Falhas/Ignorados: ${falhas}`);
+        log(`🏁 LOTE CONCLUÍDO! Verifique os resultados nos cards.`);
         log(`==================================================`);
     }
 </script>
